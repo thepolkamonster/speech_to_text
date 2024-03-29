@@ -1,0 +1,7 @@
+__pycache__
+AudioToText
+testing.ipynb
+tmp.wav
+.ipynb_checkpoints
+audio.wav
+venv

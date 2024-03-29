@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Recorder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button.recording {
+            background-color: red;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        #audio {
+            margin-top: 20px;
+            display: block; /* Change to block to ensure proper alignment */
+            margin-bottom: 20px; /* Add margin-bottom for spacing */
+            margin-left: auto; /* Align to the right */
+            margin-right: auto; /* Align to the left */
+        }
+
+        .volume-meter {
+            width: 200px;
+            height: 20px;
+            background-color: #ddd;
+            margin: 20px auto;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .volume-bar {
+            height: 100%;
+            background-color: green;
+            transition: width 0.1s;
+            border-radius: 10px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .fadeIn {
+            animation-name: fadeIn;
+            animation-duration: 1s;
+        }
+
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .slideInDown {
+            animation-name: slideInDown;
+            animation-duration: 1s;
+        }
+
+        /* Style specifically for the "Show Transcript" button */
+        #showTranscriptButton:enabled {
+            background-color: #2ecc71;
+        }
+
+        #showTranscriptButton:hover {
+            background-color: #2ecc71;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="slideInDown">Audio Recorder</h1>
+        <button id="recordButton" class="fadeIn">Start Recording</button>
+        <button id="stopButton" class="fadeIn" disabled>Stop Recording</button>
+        <a href="/transcript"> <button id="showTranscriptButton" class="fadeIn" disabled>Show Transcript</button> </a>
+        <audio id="audio" controls></audio>
+        <div class="volume-meter">
+            <div id="volumeBar" class="volume-bar"></div>
+        </div>
+    </div>
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(function(stream) {
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = function(e) {
+                    audioChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = function() { 
+                    const audioBlob = new Blob(audioChunks, { 'type': 'audio/wav; codecs=pcm'  }); // Set the MIME type to audio/
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    document.getElementById('audio').src = audioUrl;
+                    document.getElementById('audio').style.display = 'block';
+                    document.getElementById('recordButton').innerText = 'Start Recording';
+                    document.getElementById('recordButton').classList.remove('recording');
+                    document.getElementById('recordButton').disabled = false;
+                    document.getElementById('stopButton').disabled = true;
+                    audioChunks = [];
+                    isRecording = false;
+
+                    // Upload recorded audio to Flask backend
+                    uploadAudio(audioBlob);
+                };
+            })
+            .catch(function(error) {
+                console.error('Error accessing microphone:', error);
+            });
+
+        document.getElementById('recordButton').addEventListener('click', function() {
+            if (!isRecording) {
+                mediaRecorder.start();
+                document.getElementById('recordButton').innerText = 'Recording...';
+                document.getElementById('recordButton').classList.add('recording');
+                document.getElementById('recordButton').disabled = true;
+                document.getElementById('stopButton').disabled = false;
+                isRecording = true;
+            }
+        });
+
+        document.getElementById('stopButton').addEventListener('click', function() {
+            mediaRecorder.stop();
+        });
+        // Enable "Show Transcript" button when "Stop Recording" button is clicked
+        document.getElementById('stopButton').addEventListener('click', function() {
+            document.getElementById('showTranscriptButton').disabled = false;
+        });
+
+        // Function to update the volume meter
+        function updateVolumeMeter(volume) {
+            const volumeBar = document.getElementById('volumeBar');
+            const maxWidth = document.querySelector('.volume-meter').clientWidth;
+            const barWidth = maxWidth * volume;
+            volumeBar.style.width = barWidth + 'px';
+        }
+
+        // Sample code to get microphone volume level
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(function(stream) {
+                const audioContext = new AudioContext();
+                const analyser = audioContext.createAnalyser();
+                const microphone = audioContext.createMediaStreamSource(stream);
+                const javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+                analyser.smoothingTimeConstant = 0.8;
+                analyser.fftSize = 1024;
+
+                microphone.connect(analyser);
+                analyser.connect(javascriptNode);
+                javascriptNode.connect(audioContext.destination);
+
+                javascriptNode.onaudioprocess = function() {
+                    const array = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(array);
+                    const average = array.reduce((a, b) => a + b) / array.length;
+                    const volume = average / 255; // Normalizing to a range between 0 and 1
+                    updateVolumeMeter(volume);
+                };
+            })
+            .catch(function(error) {
+                console.error('Error accessing microphone:', error);
+            });
+
+        // Function to upload recorded audio to Flask backend
+        function uploadAudio(audioBlob) {
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'audio.wav');
+
+            fetch('/upload-audio', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to upload audio');
+                }
+                console.log('Audio uploaded successfully');
+            })
+            .catch(error => {
+                console.error('Error uploading audio:', error);
+            });
+        }
+    </script>
+</body>
+</html>

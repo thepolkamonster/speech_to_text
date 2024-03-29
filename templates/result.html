@@ -1,0 +1,143 @@
+<!-- result.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcript Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f3f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border: 2px solid #2ecc71; /* Green outline */
+            transition: all 0.3s ease;
+        }
+        h1 {
+            color: #3498db;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .transcript {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #ecf0f1;
+            transition: background-color 0.3s ease;
+        }
+        .transcript:hover {
+            background-color: #dfe6e9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Transcript Result</h1>
+        <div class="transcript">
+            <p>{{ transcript_text }}</p>
+        </div>
+    </div>
+    <script>
+        // JavaScript for smooth scrolling animation
+        document.addEventListener('DOMContentLoaded', function () {
+            const containers = document.querySelectorAll('.container');
+            containers.forEach(container => {
+                container.style.opacity = '0';
+                setTimeout(() => {
+                    container.style.opacity = '1';
+                }, 300);
+            });
+        });
+    </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcript Result</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f0f3f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 40px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        h1 {
+            color: #3498db;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .transcript {
+            padding: 30px;
+            border-radius: 5px;
+            background-color: #ecf0f1;
+            transition: background-color 0.3s ease;
+        }
+        .transcript:hover {
+            background-color: #dfe6e9;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Transcript Result</h1>
+        <div class="transcript">
+            <p>{{ transcript_text }}</p>
+        </div>
+    </div>
+    <footer>
+        © {{ current_year }} By Saksham Parashar
+    </footer>
+    <script>
+        // JavaScript for smooth scrolling animation
+        document.addEventListener('DOMContentLoaded', function () {
+            const containers = document.querySelectorAll('.container');
+            containers.forEach(container => {
+                container.style.opacity = '0';
+                setTimeout(() => {
+                    container.style.opacity = '1';
+                }, 300);
+            });
+        });
+    </script>
+</body>
+</html>
+
